@@ -40,6 +40,8 @@ mission:
       landed:
         hold: [buzzer]
 
+    initial_state: pad
+
     # define a list of transitions the state machine allows
     # each transition has to have a condition
     transitions:

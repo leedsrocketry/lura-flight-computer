@@ -4,6 +4,7 @@ use crate::board::OutputId;
 pub struct Mission<'a> {
     pub channels: &'a [Channel],
     pub states: &'a [State<'a>],
+    pub initial_state: StateId,
     pub transitions: &'a [Transition<'a>],
 }
 
