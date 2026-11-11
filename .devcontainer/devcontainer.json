@@ -1,0 +1,41 @@
+{
+  "name": "g2c telemetry",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+
+  // USB serial access (flashing the board from inside the container).
+  // Docker Desktop on macOS/Windows cannot pass USB devices through, so there
+  // you build in the container and flash from the host (see README).
+  // On a Linux host, uncomment this to give the container your serial ports:
+  "runArgs": ["--privileged", "-v", "/dev:/dev"],
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "Wokwi.wokwi-vscode"
+      ],
+      "settings": {
+        // `onboard` is not in the root workspace, so tell rust-analyzer
+        // about both projects explicitly.
+        "rust-analyzer.linkedProjects": [
+          "Cargo.toml",
+          "onboard/Cargo.toml"
+        ],
+        // Don't try to run tests for the ESP32 target (they can't run here).
+        "rust-analyzer.check.allTargets": false
+      }
+    },
+    "zed": {
+      "extensions": [
+        "toml"
+      ]
+    }
+  },
+
+  // Fetch dependencies for both projects so the first build is quicker.
+  "postCreateCommand": "cargo fetch && cd onboard && cargo fetch"
+}

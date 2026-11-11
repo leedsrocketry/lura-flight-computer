@@ -1,0 +1,11 @@
+[target.xtensa-esp32s3-none-elf]
+runner = "espflash flash --monitor"
+
+[build]
+target = "xtensa-esp32s3-none-elf"
+# hides the RWX warning about esp-hal linker placing code and data in one segment that is both writable
+# and executable, which is normal on this chip, which has no MMU or memory protection
+rustflags = ["-C", "link-arg=-nostartfiles", "-C", "link-arg=-Tlinkall.x", "-C", "link-arg=-Wl,--no-warn-rwx-segments"]
+
+[unstable]
+build-std = ["core"]
