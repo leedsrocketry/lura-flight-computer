@@ -1,0 +1,69 @@
+# The flight computer should be reusable between missions.
+# This means we ideally can provide it an easily-editible configuration so it can adapt to the mission
+# without editing firmware source code.
+#
+# This computer has three responsibilities;
+# 1. Primary Avionics; deploying parachutes / recovery
+# 2. Tracking; GPS location transmitted back to a ground station via RF
+# 3. Telemetry; Sensor data transmitted back to a ground station via RF
+#
+# All of these responsibilites' configuration therefore needs to be represented within this YAML file.
+
+#
+# --------- PRIMARY AVIONICS BEGIN ---------- #
+#
+mission:
+  primary:
+    # how the states can actually interact with the rocket's wider components
+    # when the rocket is assembled, the computer's GPIO pins will be wired to primary avionics
+    # we can also reference a set of MOCKx pins to send over RF for testing
+    channels:
+      drogue: { use: drogue, pulse: 1s }
+      main:   { use: main, pulse: 1s }
+      buzzer: { use: buzzer }
+
+    # the finite set of states the compter can be in
+    # the computer can only be in a singular state at the same time
+    states:
+      # on launchpad
+      pad:
+        hold: [buzzer]
+      # ascending
+      ascent:
+      # drogue parachute descent
+      drogue_descent:
+        on_enter: [{ fire: drogue }]
+      # main parachute descent
+      main_descent:
+        on_enter: [{ fire: main }]
+      # parachute has landed
+      landed:
+        hold: [buzzer]
+
+    # define a list of transitions the state machine allows
+    # each transition has to have a condition
+    transitions:
+      # trigger ascent state if the Z accel is over 3g
+      - from: pad
+        to: ascent
+        when: { signal: accel_z, above: 3g, for: 100ms }
+      # trigger drogue parachute when we detect apogee
+      - from: ascent
+        to: drogue_descent
+        when: { event: apogee }
+      # safety trigger; if drogue hasn't been triggered from above transition after 25s DEPLOY
+      - from: ascent
+        to: drogue_descent
+        when: { time_in_state: 120s }
+      # trigger main parachute if altitude falls below 300m
+      - from: drogue_descent
+        to: main_descent
+        when: { signal: altitude_agl, below: 300m, for: 250ms }
+      # if vertical speed is around zero for over 5 seconds, consider landed
+      # in practice this will probably never trigger as sea landing will not have zero vertical speed
+      - from: main_descent
+        to: landed
+        when: { signal: vertical_speed, between: [-1, 1], for: 5s }
+#
+# --------- PRIMARY AVIONICS END ---------- #
+#

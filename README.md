@@ -1,6 +1,6 @@
-# G2C telemetry
+# Custom Flight Computer
 
-Telemetry for a supersonic sounding rocket: ESP32-S3 flight firmware plus a ground station.
+Primary avionics, tracking, and telemetry, built for ESP32.
 
 ## Layout
 

@@ -1,0 +1,62 @@
+board:
+  pyro_arm: GPIO18 # shared arm switch for all pyro channels (optional)
+  outputs:
+    drogue: { pyro: { fire: GPIO11, sense: { pin: GPIO1, mode: adc } } }
+    main: { pyro: { fire: GPIO12, sense: { pin: GPIO2, mode: digital } } }
+    buzzer: { pin: GPIO15 }
+    mock1: { mock: true }
+
+  # define connected buses
+  # bus interfaces such as I2C and SPI are shared so they need to be defined separately from sensors
+  buses:
+    i2c0:
+      interface: i2c
+      peripheral: I2C0
+      sda: GPIO6
+      scl: GPIO7
+      frequency_hz: 400000
+
+    spi0:
+      interface: spi
+      peripheral: SPI2
+      sclk: GPIO4
+      mosi: GPIO5
+      miso: GPIO3
+      frequency_hz: 8000000
+
+    uart0:
+      interface: uart
+      peripheral: UART1
+      tx: GPIO20
+      rx: GPIO21
+      baud_rate: 115200
+
+  sensors:
+    barometer:
+      driver: bmp390 # each barometer will have a different protocol over a bus
+      bus: i2c0
+      address: 0x77 # address within the bus
+
+    imu:
+      driver: icm42688
+      bus: spi0
+      cs: GPIO10
+      interrupt: GPIO0
+
+    gps:
+      driver: ublox
+      bus: uart0
+
+  radios:
+    # the drivers defined here tell the buildscript what drivers to include in the binary
+    # multiple drivers can be defined, any transmission will be sent to all radios
+    - driver: serial # mock RF that outputs to serial output
+    - driver: sx1262
+      bus: spi0
+      cs: GPIO1
+      busy: GPIO2
+      dio1: GPIO8
+      reset: GPIO9
+      frequency_hz: 868100000 # 868 MHz G1 subband
+      tx_power_dbm: 14 # 14 dBm is the EU default limit for the g1 sub-band
+      # etc
